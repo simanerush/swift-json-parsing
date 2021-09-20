@@ -13,10 +13,17 @@ class KivaLoanTableViewController: UITableViewController {
     
     private let kivaLoanURL = "https://api.kivaws.org/v1/loans/newest.json"
     private var loans = [Loan]()
-
+    
+    enum Section {
+        case all
+    }
+    
+    lazy var dataSource = ConfigureDataSource()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-
+        
+        getLatestLoans()
         tableView.estimatedRowHeight = 92.0
         tableView.rowHeight = UITableView.automaticDimension
     }
@@ -79,6 +86,37 @@ class KivaLoanTableViewController: UITableViewController {
         }
         
         return loans
+    }
+    
+    func ConfigureDataSource() -> UITableViewDiffableDataSource<Section, Loan> {
+        
+        let cellIdentifier = "Cell"
+        
+        let dataSource = UITableViewDiffableDataSource<Section, Loan>(
+            tableView: tableView,
+            cellProvider: {tableView, indexPath, loan in
+                let cell =
+                    tableView.dequeueReusableCell(withIdentifier: cellIdentifier, for: indexPath) as! KivaLoanTableViewCell
+                
+                cell.nameLabel.text = loan.name
+                cell.countryLabel.text = loan.country
+                cell.useLabel.text = loan.use
+                cell.amountLabel.text = "$\(loan.amount)"
+                
+                return cell
+            }
+        )
+        
+        return dataSource
+    }
+    
+    func updateSnapshot(animatingChange: Bool = false) {
+        //create a snapshot and populate the data
+        var snapshot = NSDiffableDataSourceSnapshot<Section, Loan>()
+        snapshot.appendSections([.all])
+        snapshot.appendItems(loans, toSection: .all)
+        
+        dataSource.apply(snapshot, animatingDifferences: animatingChange)
     }
 
 }
