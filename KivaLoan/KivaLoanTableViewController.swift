@@ -27,11 +27,13 @@ class KivaLoanTableViewController: UITableViewController {
     }
     
     func getLatestLoans() {
+        //instaniate the URL structure, returns the optional, so we use the guard value
         guard let loanURL = URL(string: kivaLoanURL) else {
             return
         }
         
         let request = URLRequest(url: loanURL)
+        //creating a URLSession, works woth HTTP/HTTPS protocols
         let task = URLSession.shared.dataTask(with: request, completionHandler: {
             (data, response, error) -> Void in
             
@@ -40,9 +42,9 @@ class KivaLoanTableViewController: UITableViewController {
                 return
             }
             
-            //Parse JSON data
+            //Parse JSON data if there are no errors
             if let data = data {
-                self.loans = self.parseJsonData(data: data)
+                self.loans = self.parseJsonData(data: data) //return JSON data
                 
                 //update table view's data
                 OperationQueue.main.addOperation({
@@ -51,17 +53,18 @@ class KivaLoanTableViewController: UITableViewController {
             }
         })
         
-        task.resume()
+        task.resume() //initiate the data task
     }
     
     func parseJsonData(data: Data) -> [Loan] {
         var loans = [Loan]()
         
         do {
-            let jsonResult = try JSONSerialization.jsonObject(with: data, options: JSONSerialization.ReadingOptions.mutableContainers) as? NSDictionary
-            
+            let jsonResult = try JSONSerialization.jsonObject(with: data, options: JSONSerialization.ReadingOptions.mutableContainers) as? NSDictionary //convert to Foundation object
+            //TOP LEVEL ITEMS ARE KEYS
             //Parse JSON data
             let jsonLoans = jsonResult?["loans"] as! [AnyObject]
+            //loop through the array that was returned, convert to a dictionary
             for jsonLoan in jsonLoans {
                 var loan = Loan()
                 loan.name = jsonLoan["name"] as! String
